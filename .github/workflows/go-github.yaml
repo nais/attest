@@ -1,4 +1,4 @@
-name: Go Salsa Action
+name: Go Github Salsa Action
 on: [ push ]
 
 env:
