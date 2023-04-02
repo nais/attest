@@ -1,2 +1,2 @@
 # attest
-Sign and attest the generated sbom
+Sign and attest sbom

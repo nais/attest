@@ -1,0 +1,36 @@
+name: Go Salsa Action
+on: [ push ]
+
+env:
+  IMAGE: ttl.sh/salsa/attest
+
+jobs:
+  attest:
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Build and push
+        id: docker_build
+        uses: docker/build-push-action@v4
+        with:
+          push: true
+          tags: ${{ env.IMAGE }}:1h
+          context: ./ci/golang
+
+      - name: Use trivy to generate sbom
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: "image"
+          format: "cyclonedx"
+          output: "bom.json"
+          image-ref: "${{ env.IMAGE }}@${{ steps.docker_build.outputs.digest }}"
+
+      - name: Sign and upload SBOM
+        uses: ./
+        with:
+          image: ${{ env.IMAGE }}@${{ steps.docker_build.outputs.digest }}
+          sbom: bom.json
